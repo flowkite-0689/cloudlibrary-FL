@@ -1,0 +1,2 @@
+ALTER TABLE user
+ADD COLUMN phone VARCHAR(20) COMMENT '手机号码' AFTER email; 

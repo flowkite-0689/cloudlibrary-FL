@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cloudlibrary_api.mapper.BookMapper">
+
+    <!-- 统一使用 resultMap 映射 -->
+    <resultMap id="bookResultMap" type="com.cloudlibrary_api.pojo.Book">
+        <id property="bookId" column="book_id"/>
+        <result property="bookName" column="book_name"/>
+        <result property="isbn" column="book_isbn"/>
+        <result property="press" column="book_press"/>
+        <result property="author" column="book_author"/>
+        <result property="pagination" column="book_pagination"/>
+        <result property="price" column="book_price"/>
+        <result property="status" column="book_status"
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 使用 resultMap 替代 resultType -->
+    <select id="searchBooks" resultMap="bookResultMap">
+        SELECT * FROM book
+        WHERE book_name LIKE CONCAT('%', #{bookName}, '%')
+          AND is_deleted = 0
+    </select>
+
+    <update id="updatePrice">
+        UPDATE book
+        SET book_price = #{price}
+        WHERE book_id = #{bookId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE book
+        SET book_status = #{statusCode}
+        WHERE book_id = #{bookId}
+    </update>
+
+    <!-- 修复后的分页查询 -->
+    <select id="selectBookPage" resultMap="bookResultMap">
+        SELECT * FROM book
+        <where>
+            is_deleted = 0
+            <!-- 使用正确的数据库字段名 -->
+            <if test="query.bookName != null and query.bookName != ''">
+                AND book_name LIKE CONCAT('%', #{query.bookName}, '%')
+            </if>
+            <if test="query.author != null and query.author != ''">
+                AND book_author LIKE CONCAT('%', #{query.author}, '%')
+            </if>
+            <if test="query.press != null and query.press != ''">
+                AND book_press LIKE CONCAT('%', #{query.press}, '%')
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND book_status = #{query.status}
+            </if>
+        </where>
+        ORDER BY
+        <choose>
+            <!-- 使用正确的数据库字段名 -->
+            <when test="query.sortField == 'price'">book_price</when>
+            <when test="query.sortField == 'create_time'">create_time</when>
+            <otherwise>book_id</otherwise>
+        </choose>
+        <!-- 安全处理排序方向 -->
+        <choose>
+            <when test="query.sortOrder == 'DESC' or query.sortOrder == 'desc'">
+                DESC
+            </when>
+            <otherwise>
+                ASC
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

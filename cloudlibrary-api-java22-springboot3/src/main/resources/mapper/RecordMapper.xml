@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cloudlibrary_api.mapper.RecordMapper">
+
+    <resultMap id="baseResultMap" type="com.cloudlibrary_api.pojo.Record">
+        <id column="record_id" property="recordId"/>
+        <result column="record_borrowtime" property="borrowTime"/>
+        <result column="record_returntime" property="returnTime"/>
+        <result column="book_id" property="bookId"/>
+        <result column="user_id" property="userId"/>
+        <result column="record_status" property="status"/>
+        <result column="is_deleted" property="isDeleted"/>
+
+        <!-- 关联字段 -->
+        <result column="book_name" property="bookName"/>
+        <result column="book_isbn" property="bookIsbn"/>
+        <result column="borrower_name" property="borrowerName"/>
+    </resultMap>
+
+    <select id="selectRecordPage" resultMap="baseResultMap">
+        SELECT
+        r.record_id,
+        r.record_borrowtime,
+        r.record_returntime,
+        r.book_id,
+        r.user_id,
+        r.record_status,
+        r.is_deleted,
+
+        b.book_name,
+        b.book_isbn,
+
+        u.username AS borrower_name
+
+        FROM record r
+        LEFT JOIN book b ON r.book_id = b.book_id
+        LEFT JOIN user u ON r.user_id = u.user_id
+
+        <where>
+            r.is_deleted = 0
+
+            <!-- 按书名查询 -->
+            <if test="query.bookName != null and query.bookName != ''">
+                AND b.book_name LIKE CONCAT('%', #{query.bookName}, '%')
+            </if>
+
+            <!-- 按借阅人查询 -->
+            <if test="query.borrowerName != null and query.borrowerName != ''">
+                AND u.username LIKE CONCAT('%', #{query.borrowerName}, '%')
+            </if>
+
+            <!-- 按ISBN查询 -->
+            <if test="query.isbn != null and query.isbn != ''">
+                AND b.book_isbn = #{query.isbn}
+            </if>
+
+            <!-- 按状态查询（使用整数状态值） -->
+            <if test="query.status != null">
+                AND r.record_status = #{query.status}
+            </if>
+        </where>
+
+        <!-- 安全排序 -->
+        ORDER BY
+        <!-- 只允许排序预定义字段 -->
+        <choose>
+            <when test="query.sortField == 'borrowTime'">
+                r.record_borrowtime
+            </when>
+            <when test="query.sortField == 'returnTime'">
+                r.record_returntime
+            </when>
+            <when test="query.sortField == 'bookName'">
+                b.book_name
+            </when>
+            <when test="query.sortField == 'borrowerName'">
+                u.username
+            </when>
+            <otherwise>
+                r.record_id
+            </otherwise>
+        </choose>
+
+        <!-- 安全处理排序方向 -->
+        <if test="query.sortOrder != null and query.sortOrder == 'ASC'">
+            ASC
+        </if>
+        <if test="query.sortOrder != null and query.sortOrder != 'ASC'">
+            DESC
+        </if>
+    </select>
+</mapper>

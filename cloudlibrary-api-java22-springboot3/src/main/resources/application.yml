@@ -1,0 +1,77 @@
+# application.yml 优化配置
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  mvc:
+    charset:
+      response: UTF-8
+      request: UTF-8
+    http:
+      encoding:
+        charset: UTF-8
+        enabled: true
+        force: true
+  mail:
+    host: smtp.qq.com # 冗余配置但帮助文档
+    port: 587
+    username: 2634317128@qq.com # 与JavaConfig一致
+    properties:
+      mail:
+        smtp:
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/cloudlibrary?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.cloudlibrary_api.pojo
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: is_deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+jwt:
+  secret: your-secret-key
+  expiration: 86400000  # 24 hours in milliseconds
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    config-url: /api/v3/api-docs/swagger-config
+    url: /api/v3/api-docs
+qiniu:
+  accessKey: o6Jv-zO8H7lX-G1WpcfTGdzv2BzrsX2Zin-9XmEF
+  secretKey: fzFBcJrWHbA9m6pCnFRhwIAiYmJGTCXN7X3gmyJD
+  bucketName: cloudlibrary-avatar
+  fileDomain: http://sx8glofs4.hn-bkt.clouddn.com
+
+logging:
+  charset:
+    console: UTF-8   # 控制台日志编码
+    file: UTF-8      # 日志文件编码
